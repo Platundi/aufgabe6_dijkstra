@@ -3,5 +3,7 @@ public class Edge {
     public double weight;
 
     public Edge(Node d, double w) {
+        dest = d;
+        weight = w;
     }
 }

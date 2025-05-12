@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
@@ -8,5 +9,10 @@ public class Node {
     double dist;
 
     public Node(String n) {
+        name = n;
+        neighbors = new ArrayList<Edge>();
+        visited = false;
+        prev = null;
+        dist = Double.MAX_VALUE;
     }
 }
