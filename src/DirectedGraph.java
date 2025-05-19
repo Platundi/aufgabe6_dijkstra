@@ -1,9 +1,9 @@
 /* Quellen:
-* https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/
-* claude.ai
-* Folien
-* https://www.programiz.com/dsa/graph-bfs
-* https://www.w3schools.com/java/java_linkedlist.asp */
+ * https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/
+ * claude.ai
+ * Folien
+ * https://www.programiz.com/dsa/graph-bfs
+ * https://www.w3schools.com/java/java_linkedlist.asp */
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,7 +16,32 @@ public class DirectedGraph {
     private Map<String, Node> nodes =
             new HashMap<String, Node>();
 
-    public static DirectedGraph readGraph(String file) {
+    public void dijkstra(String start) {
+        MinPQ pq = new MinPQ(nodes.size());
+        for (Node node : nodes.values()) {
+            node.visited = false;
+            node.prev = null;
+            node.dist = INFINITY;
+            if (node.name == start) {
+                node.dist = 0;
+            }
+            pq.insert(node.name, node.dist);
+        }
+        while (!pq.isEmpty()) {
+            Node u = pq.extractElement();
+            u.visited = true;
+            for (Edge edge : u.neighbors) {
+                Node neighbor = edge.dest;
+                if (neighbor.visited == false && neighbor.dist > u.dist + edge.weight) {
+                    neighbor.dist = u.dist + edge.weight;
+                    neighbor.prev = u;
+                    pq.update(neighbor.name, neighbor.dist);
+                }
+            }
+        }
+    }
+
+    public DirectedGraph readGraph(String file) {
         DirectedGraph graph = new DirectedGraph();
 
         // claude.ai (Prompt: datei einlesen java)
@@ -32,8 +57,8 @@ public class DirectedGraph {
                     double weight = Double.parseDouble(parts[2]);
 
                     // knoten erzeugen/abrufen mit hilfsmethode
-                    Node sourceNode = graph.getOrCreateNode(sourceNodeName);
-                    Node destNode = graph.getOrCreateNode(destNodeName);
+                    Node sourceNode = graph.getOrCreateNode(sourceNodeName, weight);
+                    Node destNode = graph.getOrCreateNode(destNodeName, weight);
 
                     // add kante
                     sourceNode.neighbors.add(new Edge(destNode, weight));
@@ -48,9 +73,9 @@ public class DirectedGraph {
     }
 
     // hilfsmethode um knoten hinzuzufügen
-    private Node getOrCreateNode(String name) {
+    private Node getOrCreateNode(String name, double weight) {
         if (!nodes.containsKey(name)) {
-            nodes.put(name, new Node(name));
+            nodes.put(name, new Node(name, weight));
         }
         return nodes.get(name);
     }
@@ -61,12 +86,14 @@ public class DirectedGraph {
             return false;
         }
 
-        // alle knoten resetten
+     /*   // alle knoten resetten
         for (Node node : nodes.values()) {
             node.prev = null;
             node.dist = INFINITY;
             node.visited = false;
-        }
+        }*/
+
+        dijkstra(start);
 
         Node startNode = nodes.get(start);
         startNode.prev = null;
@@ -90,7 +117,7 @@ public class DirectedGraph {
 
             // max pfadlänge überschritten -> mit nächstem knoten weitermachen
             if (u.dist >= max) {
-                continue;
+                return false;
             }
 
             // alle nachbarn durchgehen
@@ -128,7 +155,7 @@ public class DirectedGraph {
         }
 
         // Pfad in richtiger Reihenfolge ausgeben (vom Start zum Ziel)
-        System.out.println("pfad vom start zum ziel mit laenge" + destNode.dist + ":");
+        System.out.println("pfad vom start zum ziel mit laenge " + destNode.dist + ":");
         for (int i = path.size() - 1; i >= 0; i--) {
             System.out.print(path.get(i));
             if (i > 0) {

@@ -8,11 +8,11 @@ public class Node {
     Node prev;
     double dist;
 
-    public Node(String n) {
+    public Node(String n, double p) {
         name = n;
         neighbors = new ArrayList<Edge>();
         visited = false;
         prev = null;
-        dist = Double.MAX_VALUE;
+        dist = p;
     }
 }

@@ -2,7 +2,8 @@ public class Main {
     public static void main(String[] args) {
 
         // Graph aus der Datei einlesen
-        DirectedGraph graph = DirectedGraph.readGraph("OS_Map.txt");
+        DirectedGraph drg = new DirectedGraph();
+        DirectedGraph graph = drg.readGraph("OS_Map.txt");
 
         if (graph == null) {
             System.out.println("fehler beim einlesen des graphen.");
