@@ -1,111 +1,130 @@
-import java.util.*;
+//Quellen:
+// https://www.geeksforgeeks.org/binary-heap/
+// https://www.geeksforgeeks.org/introduction-to-min-heap-data-structure/
+// https://www.geeksforgeeks.org/implement-a-binary-heap-in-java/
+// https://www.geeksforgeeks.org/priority-queue-using-binary-heap/
+
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MinPQ {
+
     private Node[] heap;
-    private int maxsize;
-    private int currentsize;
+    private int maxsize; // A.length
+    private int currentsize; // A.heap-size
 
-    // Grundlegendes Verständnis für Implementation von HeapSort: https://www.geeksforgeeks.org/heap-sort/?ref=gcse_outind (08.04.2025)
-    // Grundlegendes Verständnis für Min-Heap Datenstruktur: https://www.geeksforgeeks.org/introduction-to-min-heap-data-structure/?ref=gcse_outind (08.04.2025)
-    // Konstruktor
-    public MinPQ(int maxsize) {
-        this.maxsize = maxsize;
-        this.currentsize = 0;
-        this.heap = new Node[maxsize];
+    public int getCurrentSize() {
+        return currentsize;
     }
 
-    // Idee für minHeapify: https://www.geeksforgeeks.org/introduction-to-min-heap-data-structure/?ref=gcse_outind (08.04.2025)
-    public void minHeapify(int i, int n) {
-        // Assume the root is the smallest element initially
-        int smallest = i;
-        // Calculate the indices of the left and right child of the current node
-        int l = 2 * i + 1;
-        int r = 2 * i + 2;
-
-        // Compare the left child with the current smallest
-        if (l < n && this.heap[l].dist < this.heap[smallest].dist) smallest = l;
-
-        // Compare the right child with the current smallest
-        if (r < n && this.heap[r].dist < this.heap[smallest].dist) smallest = r;
-
-        // If the current node is not the smallest, swap it with the smallest child
-        if (smallest != i) {
-            Node tmp = this.heap[i];
-            this.heap[i] = this.heap[smallest];
-            this.heap[smallest] = tmp;
-            // Recursively heapify the subtree rooted at the smallest child
-            minHeapify(smallest, n);
-        }
-    }
+    public MinPQ(int max) {
+        maxsize = max;
+        heap = new Node[maxsize+1];
+        currentsize = 0;
+    }// Konstruktor
 
     public boolean isEmpty() {
-        return this.currentsize == 0;
+        return currentsize == 0;
     }
 
-    // Referenz: https://www.geeksforgeeks.org/introduction-to-min-heap-data-structure/?ref=gcse_outind (08.04.2025)
-    public boolean insert(String d, double p) {
-        Node e = new Node(d, p);
-        if (this.currentsize < this.maxsize) {
-            this.heap[this.currentsize] = e;
-            int index = this.currentsize;
-            this.currentsize++;
-
-            // Compare the new element with its parent and swap if necessary
-            while (index > 0 && this.heap[(index - 1) / 2].dist > heap[index].dist) {
-                tauschen(index, (index - 1) / 2);
-                // Move up the tree to the parent of the current element
-                index = (index - 1) / 2;
+public boolean insert(String d, double p, List<Edge> neighbors) {
+        int pos = findPosition(d);
+        if (pos != -1) {
+            // Element existiert schon → update
+            if (p < heap[pos].dist) {
+                update(d, p);
             }
-
-            return true;
+            return true; // oder false, je nach gewünschtem Verhalten
         }
-        System.out.println("Queue ist voll!");
-        return false;
+        if (currentsize == maxsize){
+            System.out.println("error: heap overflow");
+            return false;
+        }
+        currentsize++;
+        heap[currentsize] = new Node(d,p,neighbors);
+        int i = currentsize;
+        while(i > 1 && heap[i / 2].dist > heap[i].dist){
+            vertausche(i , i / 2);
+            i = i / 2;
+        }
+        return true;
+    }
+
+    private int findPosition(String d) {
+        for (int i = 1; i <= currentsize; i++) {
+            if (heap[i].name.equals(d)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public Node extractElement() {
-        if (isEmpty()) {
+        if (currentsize < 1){
+            System.out.println("error: heap underflow");
             return null;
         }
-        // Wurzel (erstes Element (geringste Prio) aus dem MinHeap) speichern
-        Node min = this.heap[0];
-        this.heap[0] = this.heap[this.currentsize - 1]; // Element mit höchster Prio an Wurzelstelle schieben
-        this.heap[this.currentsize - 1] = null;
+        Node min = heap[1];
+        heap[1] = heap[currentsize];
         currentsize--;
-
-        minHeapify(0, this.currentsize);
+        minheapify(heap,1);
         return min;
     }
 
     public String extractData() {
-        if (isEmpty()) {
-            return null;
-        }
-        Node data = extractElement();
-        return data.name;
+        Node min = extractElement();
+        if (min!=null){
+            return min.name;
+        } return null;
     }
 
+
     public void update(String s, double n) {
-        for (int i = 0; i < this.currentsize; i++) {
-            if (this.heap[i].name.equals(s)) {
-                if (this.heap[i].dist > n) {
-                    this.heap[i].dist = n;
+        for(int i = 1; i <= currentsize; i++){
+            if(heap[i].name.equals(s)){
+                if(n < heap[i].dist) { //weil sonst ein Elterknoten gößer als sein Nachfolger sein könnte
+                    heap[i].dist = n;
+                    bubbleUp(i);
                 }
-                // Bubble Up - Element mit neuer Priorität muss Richtung Wurzel wandern
-                int index = i;
-                while (index > 0 && this.heap[(index - 1) / 2].dist > heap[index].dist) {
-                    tauschen(index, (index - 1) / 2);
-                    // Move up the tree to the parent of the current element
-                    index = (index - 1) / 2;
-                }
+                break;
             }
         }
     }
 
-    private void tauschen(int i, int j) {
-        Node tmp = this.heap[i];
-        this.heap[i] = this.heap[j];
-        this.heap[j] = tmp;
+    private void bubbleUp(int i) {
+        while (i > 1 && heap[i / 2].dist > heap[i].dist) {
+            vertausche(i, (i / 2));
+            i = (i / 2);
+        }
     }
 
+    private void minheapify(Node[]heap , int i){
+        int smallest;
+        int left = 2 * i;
+        int right = 2 * i + 1;
+
+        if (left <= currentsize && heap[left].dist < heap[i].dist){
+            smallest = left;
+        } else {
+            smallest = i;
+        }
+
+        if (right <= currentsize && heap[right].dist < heap[smallest].dist) {
+            smallest = right;
+        }
+
+        if (smallest != i){
+            vertausche(i, smallest);
+            minheapify(heap, smallest);
+        }
+
+    }
+
+    private void vertausche(int erste, int zweite){
+        Node tmp;
+        tmp = heap[erste];
+        heap[erste] = heap[zweite];
+        heap[zweite] = tmp;
+    }
 }

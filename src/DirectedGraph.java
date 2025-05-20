@@ -17,31 +17,6 @@ public class DirectedGraph {
             new HashMap<String, Node>();
     private MinPQ pq;
 
-    public void dijkstra(String start) {
-        pq = new MinPQ(nodes.size());
-        for (Node node : nodes.values()) {
-            node.visited = false;
-            node.prev = null;
-            node.dist = INFINITY;
-            if (node.name == start) {
-                node.dist = 0;
-            }
-            pq.insert(node.name, node.dist);
-        }
-        while (!pq.isEmpty()) {
-            Node u = pq.extractElement();
-            u.visited = true;
-            for (Edge edge : u.neighbors) {
-                Node neighbor = edge.dest;
-                if (neighbor.visited == false && neighbor.dist > u.dist + edge.weight) {
-                    neighbor.dist = u.dist + edge.weight;
-                    neighbor.prev = u;
-                    pq.update(neighbor.name, neighbor.dist);
-                }
-            }
-        }
-    }
-
     public DirectedGraph readGraph(String file) {
         DirectedGraph graph = new DirectedGraph();
 
@@ -58,8 +33,8 @@ public class DirectedGraph {
                     double weight = Double.parseDouble(parts[2]);
 
                     // knoten erzeugen/abrufen mit hilfsmethode
-                    Node sourceNode = graph.getOrCreateNode(sourceNodeName, weight);
-                    Node destNode = graph.getOrCreateNode(destNodeName, weight);
+                    Node sourceNode = graph.getOrCreateNode(sourceNodeName);
+                    Node destNode = graph.getOrCreateNode(destNodeName);
 
                     // add kante
                     sourceNode.neighbors.add(new Edge(destNode, weight));
@@ -73,10 +48,35 @@ public class DirectedGraph {
         return graph;
     }
 
+    public void dijkstra(String start) {
+        pq = new MinPQ(nodes.size());
+        for (Node node : nodes.values()) {
+            node.visited = false;
+            node.prev = null;
+            node.dist = INFINITY;
+            if (node.name.contains(start)) {
+                node.dist = 0;
+            }
+            pq.insert(node.name, node.dist, node.neighbors);
+        }
+        while (!pq.isEmpty()) {
+            Node u = pq.extractElement();
+            u.visited = true;
+            for (Edge edge : u.neighbors) {
+                Node neighbor = edge.dest;
+                if (!neighbor.visited && neighbor.dist > u.dist + edge.weight) {
+                    neighbor.dist = u.dist + edge.weight;
+                    neighbor.prev = u;
+                    pq.update(neighbor.name, neighbor.dist);
+                }
+            }
+        }
+    }
+
     // hilfsmethode um knoten hinzuzufügen
-    private Node getOrCreateNode(String name, double weight) {
+    private Node getOrCreateNode(String name) {
         if (!nodes.containsKey(name)) {
-            nodes.put(name, new Node(name, weight));
+            nodes.put(name, new Node(name));
         }
         return nodes.get(name);
     }
@@ -95,13 +95,13 @@ public class DirectedGraph {
         }*/
 
         dijkstra(start);
-
         Node startNode = nodes.get(start);
 /*        startNode.prev = null;
         startNode.visited = true;
         startNode.dist = 0;*/
 
         Node destNode = nodes.get(dest);
+
 
         // queue durch linkedList -> brauchen für queue ueberwiegend hinzufügen am ende (add) der queue
         // und entfernen am anfang (poll) der queue -> linkedList eignet sich durch die methoden
