@@ -15,9 +15,10 @@ public class DirectedGraph {
             Double.MAX_VALUE;
     private Map<String, Node> nodes =
             new HashMap<String, Node>();
+    private MinPQ pq;
 
     public void dijkstra(String start) {
-        MinPQ pq = new MinPQ(nodes.size());
+        pq = new MinPQ(nodes.size());
         for (Node node : nodes.values()) {
             node.visited = false;
             node.prev = null;
@@ -96,19 +97,19 @@ public class DirectedGraph {
         dijkstra(start);
 
         Node startNode = nodes.get(start);
-        startNode.prev = null;
+/*        startNode.prev = null;
         startNode.visited = true;
-        startNode.dist = 0;
+        startNode.dist = 0;*/
 
         Node destNode = nodes.get(dest);
 
         // queue durch linkedList -> brauchen für queue ueberwiegend hinzufügen am ende (add) der queue
         // und entfernen am anfang (poll) der queue -> linkedList eignet sich durch die methoden
-        Queue<Node> queue = new LinkedList<>();
-        queue.add(startNode);
+/*        Queue<Node> queue = new LinkedList<>();
+        queue.add(startNode);*/
 
-        while (!queue.isEmpty()) {
-            Node u = queue.poll();
+        while (!pq.isEmpty()) {
+            Node u = pq.extractElement();
 
             // Ziel gefunden
             if (u == destNode) {
@@ -121,7 +122,7 @@ public class DirectedGraph {
             }
 
             // alle nachbarn durchgehen
-            for (Edge edge : u.neighbors) {
+  /*          for (Edge edge : u.neighbors) {
                 Node neighbor = edge.dest;
                 if (!neighbor.visited) {
                     neighbor.visited = true;
@@ -129,7 +130,7 @@ public class DirectedGraph {
                     neighbor.prev = u;
                     queue.add(neighbor);
                 }
-            }
+            }*/
         }
 
         // kein pfad gefunden zum ziel
