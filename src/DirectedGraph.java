@@ -17,7 +17,7 @@ public class DirectedGraph {
             new HashMap<String, Node>();
     private MinPQ pq;
 
-    public DirectedGraph readGraph(String file) {
+    public static DirectedGraph readGraph(String file) {
         DirectedGraph graph = new DirectedGraph();
 
         // claude.ai (Prompt: datei einlesen java)
@@ -48,33 +48,8 @@ public class DirectedGraph {
         return graph;
     }
 
-    public void dijkstra(String start) {
-        pq = new MinPQ(nodes.size());
-        for (Node node : nodes.values()) {
-            node.visited = false;
-            node.prev = null;
-            node.dist = INFINITY;
-            if (node.name.contains(start)) {
-                node.dist = 0;
-            }
-            pq.insert(node.name, node.dist, node.neighbors);
-        }
-        while (!pq.isEmpty()) {
-            Node u = pq.extractElement();
-            u.visited = true;
-            for (Edge edge : u.neighbors) {
-                Node neighbor = edge.dest;
-                if (!neighbor.visited && neighbor.dist > u.dist + edge.weight) {
-                    neighbor.dist = u.dist + edge.weight;
-                    neighbor.prev = u;
-                    pq.update(neighbor.name, neighbor.dist);
-                }
-            }
-        }
-    }
-
     // hilfsmethode um knoten hinzuzufügen
-    private Node getOrCreateNode(String name) {
+    public Node getOrCreateNode(String name) {
         if (!nodes.containsKey(name)) {
             nodes.put(name, new Node(name));
         }
@@ -87,29 +62,27 @@ public class DirectedGraph {
             return false;
         }
 
-     /*   // alle knoten resetten
+        // alle knoten resetten
         for (Node node : nodes.values()) {
             node.prev = null;
             node.dist = INFINITY;
             node.visited = false;
-        }*/
+        }
 
-        dijkstra(start);
         Node startNode = nodes.get(start);
-/*        startNode.prev = null;
+        startNode.prev = null;
         startNode.visited = true;
-        startNode.dist = 0;*/
+        startNode.dist = 0;
 
         Node destNode = nodes.get(dest);
 
-
         // queue durch linkedList -> brauchen für queue ueberwiegend hinzufügen am ende (add) der queue
         // und entfernen am anfang (poll) der queue -> linkedList eignet sich durch die methoden
-/*        Queue<Node> queue = new LinkedList<>();
-        queue.add(startNode);*/
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(startNode);
 
-        while (!pq.isEmpty()) {
-            Node u = pq.extractElement();
+        while (!queue.isEmpty()) {
+            Node u = queue.poll();
 
             // Ziel gefunden
             if (u == destNode) {
@@ -118,11 +91,11 @@ public class DirectedGraph {
 
             // max pfadlänge überschritten -> mit nächstem knoten weitermachen
             if (u.dist >= max) {
-                return false;
+                continue;
             }
 
             // alle nachbarn durchgehen
-  /*          for (Edge edge : u.neighbors) {
+            for (Edge edge : u.neighbors) {
                 Node neighbor = edge.dest;
                 if (!neighbor.visited) {
                     neighbor.visited = true;
@@ -130,11 +103,42 @@ public class DirectedGraph {
                     neighbor.prev = u;
                     queue.add(neighbor);
                 }
-            }*/
+            }
         }
 
         // kein pfad gefunden zum ziel
         return false;
+    }
+
+    public void dijkstra(String start) {
+        Node startNode = getOrCreateNode(start);
+        if (startNode == null) return;
+
+        pq = new MinPQ(nodes.size());
+        for (Node node : nodes.values()) {
+            node.visited = false;
+            node.prev = null;
+            node.dist = INFINITY;
+            if (node.name.contains(start)) {
+                node.dist = 0;
+            }
+            pq.insert(node.name, node.dist);
+        }
+        while (!pq.isEmpty()) {
+            String curr = pq.extractData();
+            Node u = getOrCreateNode(curr);
+            u.visited = true;
+            for (Edge edge : u.neighbors) {
+                Node v = edge.dest;
+                double newDist = u.dist + edge.weight;
+
+                if (!(v.visited) && v.dist > newDist) {
+                    v.dist = newDist;
+                    v.prev = u;
+                    pq.insert(v.name, newDist);
+                }
+            }
+        }
     }
 
     public void printPath(String dest) {

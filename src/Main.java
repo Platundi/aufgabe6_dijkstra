@@ -18,6 +18,10 @@ public class Main {
         testBFS(graph, "Wallenhorst", "Bissendorf", 5);
         testBFS(graph, "Osnabrueck", "Bissendorf", 4);
         testBFS(graph, "Ladbergen", "Osnabrueck", 8);
+
+        System.out.println("\nDijkstra-Tests");
+        testDijkstra(graph, "Osnabrueck", "Osterkappeln");
+        testDijkstra(graph, "Glandorf", "Bramsche");
 }
 
     private static void testBFS(DirectedGraph graph, String start, String dest, int max) {
@@ -29,6 +33,17 @@ public class Main {
             graph.printPath(dest);
         } else {
             System.out.println("kein pfad gefunden mit maximal " + max + " kanten.");
+        }
+    }
+    public static void testDijkstra(DirectedGraph graph, String start, String ziel) {
+        graph.dijkstra(start);
+        Node zielNode = graph.getOrCreateNode(ziel);
+        if (zielNode != null && zielNode.dist < DirectedGraph.INFINITY) {
+            graph.printPath(ziel);
+            System.out.print(" (Distanz:" + zielNode.dist + ")");
+            System.out.println();
+        } else {
+            System.out.println("Kein Pfad gefunden.");
         }
     }
 }

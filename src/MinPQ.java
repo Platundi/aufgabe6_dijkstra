@@ -10,7 +10,7 @@ import java.util.List;
 
 public class MinPQ {
 
-    private Node[] heap;
+    private PQElement[] heap;
     private int maxsize; // A.length
     private int currentsize; // A.heap-size
 
@@ -20,7 +20,7 @@ public class MinPQ {
 
     public MinPQ(int max) {
         maxsize = max;
-        heap = new Node[maxsize+1];
+        heap = new PQElement[maxsize+1];
         currentsize = 0;
     }// Konstruktor
 
@@ -28,11 +28,11 @@ public class MinPQ {
         return currentsize == 0;
     }
 
-public boolean insert(String d, double p, List<Edge> neighbors) {
+public boolean insert(String d, double p) {
         int pos = findPosition(d);
         if (pos != -1) {
             // Element existiert schon → update
-            if (p < heap[pos].dist) {
+            if (p < heap[pos].getPrio()) {
                 update(d, p);
             }
             return true; // oder false, je nach gewünschtem Verhalten
@@ -42,9 +42,9 @@ public boolean insert(String d, double p, List<Edge> neighbors) {
             return false;
         }
         currentsize++;
-        heap[currentsize] = new Node(d,p,neighbors);
+        heap[currentsize] = new PQElement(d,p);
         int i = currentsize;
-        while(i > 1 && heap[i / 2].dist > heap[i].dist){
+        while(i > 1 && heap[i / 2].getPrio() > heap[i].getPrio()){
             vertausche(i , i / 2);
             i = i / 2;
         }
@@ -53,19 +53,19 @@ public boolean insert(String d, double p, List<Edge> neighbors) {
 
     private int findPosition(String d) {
         for (int i = 1; i <= currentsize; i++) {
-            if (heap[i].name.equals(d)) {
+            if (heap[i].getData().equals(d)) {
                 return i;
             }
         }
         return -1;
     }
 
-    public Node extractElement() {
+    public PQElement extractElement() {
         if (currentsize < 1){
             System.out.println("error: heap underflow");
             return null;
         }
-        Node min = heap[1];
+        PQElement min = heap[1];
         heap[1] = heap[currentsize];
         currentsize--;
         minheapify(heap,1);
@@ -73,18 +73,18 @@ public boolean insert(String d, double p, List<Edge> neighbors) {
     }
 
     public String extractData() {
-        Node min = extractElement();
+        PQElement min = extractElement();
         if (min!=null){
-            return min.name;
+            return min.getData();
         } return null;
     }
 
 
     public void update(String s, double n) {
         for(int i = 1; i <= currentsize; i++){
-            if(heap[i].name.equals(s)){
-                if(n < heap[i].dist) { //weil sonst ein Elterknoten gößer als sein Nachfolger sein könnte
-                    heap[i].dist = n;
+            if(heap[i].getData().equals(s)){
+                if(n < heap[i].getPrio()) { //weil sonst ein Elterknoten gößer als sein Nachfolger sein könnte
+                    heap[i].setPrio(n);
                     bubbleUp(i);
                 }
                 break;
@@ -93,24 +93,24 @@ public boolean insert(String d, double p, List<Edge> neighbors) {
     }
 
     private void bubbleUp(int i) {
-        while (i > 1 && heap[i / 2].dist > heap[i].dist) {
+        while (i > 1 && heap[i / 2].getPrio() > heap[i].getPrio()) {
             vertausche(i, (i / 2));
             i = (i / 2);
         }
     }
 
-    private void minheapify(Node[]heap , int i){
+    private void minheapify(PQElement[]heap , int i){
         int smallest;
         int left = 2 * i;
         int right = 2 * i + 1;
 
-        if (left <= currentsize && heap[left].dist < heap[i].dist){
+        if (left <= currentsize && heap[left].getPrio() < heap[i].getPrio()){
             smallest = left;
         } else {
             smallest = i;
         }
 
-        if (right <= currentsize && heap[right].dist < heap[smallest].dist) {
+        if (right <= currentsize && heap[right].getPrio() < heap[smallest].getPrio()) {
             smallest = right;
         }
 
@@ -122,7 +122,7 @@ public boolean insert(String d, double p, List<Edge> neighbors) {
     }
 
     private void vertausche(int erste, int zweite){
-        Node tmp;
+        PQElement tmp;
         tmp = heap[erste];
         heap[erste] = heap[zweite];
         heap[zweite] = tmp;
